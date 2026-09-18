@@ -5,16 +5,13 @@ The **Zero-Setup Execution & Kaggle Notebook Runtime** guarantees that anyone ca
 
 It packages the entire pipeline into a single, self-contained Jupyter notebook (`zero_gaze_kaggle_free.ipynb`) optimized for Kaggle's free tier (T4 GPU / 16GB RAM / 30 hours weekly quota).
 
-```
-┌────────────────────────────────────────────────────────────────────────┐
-│                   KAGGLE FREE NOTEBOOK PIPELINE                        │
-├────────────────────────────────────────────────────────────────────────┤
-│ Cell 1: !pip install -q langgraph langchain-openai pymupdf4llm polars  │
-│ Cell 2: Ingest arXiv Paper & Extract Claims (MemorySaver checkpointer) │
-│ Cell 3: Discover Repos / Datasets & Generate Baseline Code             │
-│ Cell 4: Interactive ipywidgets / cell prompt for Human Approval       │
-│ Cell 5: Execute Baseline Code in ephemeral sandbox & report deltas     │
-└────────────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    A[Cell 1: Environment Setup<br/>pip install langgraph langchain-openai pymupdf4llm] --> B[Cell 2: Ingestion & Extraction<br/>Ingest arXiv Paper & Extract Claims]
+    B --> C[Cell 3: Discovery & Planning<br/>Discover Repos & Generate Baseline Code]
+    C --> D[Cell 4: In-Notebook Gate<br/>Interactive ipywidgets Approval Button]
+    D -->|Approved| E[Cell 5: Sandboxed Execution<br/>Run Baseline Code & Report Metric Deltas]
+    D -->|Aborted| F[Execution Halted]
 ```
 
 ---

@@ -8,24 +8,16 @@ The **Research Discovery & Benchmark Artifacts Engine** discovers open-source ar
 
 If no existing code exists, this module creates a structured **Synthetic Stub** to guarantee replication feasibility.
 
-```
-                  ┌───────────────────────────────┐
-                  │ Paper Title & arXiv Identifier│
-                  └──────────────┬────────────────┘
-                                 │
-         ┌───────────────────────┼───────────────────────┐
-         ▼                       ▼                       ▼
-┌──────────────────┐    ┌──────────────────┐    ┌──────────────────┐
-│  PapersWithCode  │    │   Hugging Face   │    │  GitHub Search   │
-│     REST API     │    │    Papers API    │    │     REST API     │
-└────────┬─────────┘    └────────┬─────────┘    └────────┬─────────┘
-         │                       │                       │
-         └───────────────────────┼───────────────────────┘
-                                 │
-                                 ▼
-                     [CodeResource (Pydantic)]
-                     • status: OFFICIAL | COMMUNITY | SYNTHETIC_STUB
-                     • repo_url, dataset_name, download_url
+```mermaid
+flowchart TD
+    A[Paper Title & arXiv Identifier] --> B[PapersWithCode REST API]
+    A --> C[Hugging Face Papers API]
+    A --> D[GitHub Search REST API]
+    B --> E{Artifact Evaluator}
+    C --> E
+    D --> E
+    E -->|Found Official / Community| F[CodeResource Model<br/>Status: OFFICIAL or COMMUNITY]
+    E -->|No Repository Found| G[CodeResource Model<br/>Status: SYNTHETIC_STUB]
 ```
 
 ---

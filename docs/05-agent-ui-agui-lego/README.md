@@ -8,17 +8,27 @@ It enables:
 2. Generative UI cards rendering paper claims, discovered code, and plan summaries.
 3. Human-in-the-Loop interactive modals triggered directly when LangGraph executes `interrupt()`.
 
-```
-┌─────────────────────────────────┐                 ┌─────────────────────────────────┐
-│        Next.js Frontend         │                 │         FastAPI Backend         │
-│  @copilotkit/react-core/v2      │                 │    copilotkit / ag-ui-langgraph │
-│                                 │                 │                                 │
-│  <CopilotKit                    │                 │  add_langgraph_fastapi_endpoint │
-│    runtimeUrl="/api/copilotkit">│◄── AG-UI SSE ──►│  /api/copilotkit                │
-│                                 │   Event Stream  │                                 │
-│  useAgent({ agentId: "zero" })  │                 │  LangGraph StateGraph           │
-│  Generative UI Approval Cards   │                 │  interrupt() ──► Pause SSE Event│
-└─────────────────────────────────┘                 └─────────────────────────────────┘
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User as Operator
+    participant UI as Next.js Dashboard (@copilotkit/react-core)
+    participant API as FastAPI Backend (copilotkit / ag-ui-langgraph)
+    participant Graph as LangGraph Engine (StateGraph)
+
+    User->>UI: Input arXiv Paper ID
+    UI->>API: AG-UI SSE Connection (/api/copilotkit)
+    API->>Graph: Invoke StateGraph(paper_target)
+    Graph-->>API: Stream state:delta events
+    API-->>UI: Forward SSE events to useAgent
+    Graph->>Graph: Pause at human_approval (interrupt)
+    Graph-->>API: interrupt:requested payload
+    API-->>UI: Display Interactive Plan Approval Card
+    User->>UI: Click "Approve & Generate Baseline"
+    UI->>API: Dispatch interrupt:resolved payload
+    API->>Graph: Resume with Command(resume=Approved)
+    Graph-->>API: Complete write_report & generate final artifact
+    API-->>UI: Stream completed report to UI
 ```
 
 ---

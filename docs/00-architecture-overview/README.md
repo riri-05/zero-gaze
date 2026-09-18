@@ -3,47 +3,18 @@
 > **Zero Gaze** — ML paper → replication plan agent  
 > *LangGraph agent that reads an arXiv paper and drafts the experiment.*
 
-```
-                 ┌────────────────────────────────────────────────────────┐
-                 │                 ZERO GAZE SYSTEM MAP                   │
-                 └────────────────────────────────────────────────────────┘
-
-[arXiv Link / PDF] 
-       │
-       ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│ LEGO 01: Paper Ingestion & Markdown Engine (PyMuPDF / arXiv API)        │
-│ • Extracts raw PDF streams to structured markdown with LaTeX & tables   │
-└────────────────────────────────────┬────────────────────────────────────┘
-                                     │ PaperArtifact
-                                     ├────────────────────────────────────┐
-                                     ▼                                    ▼
-┌──────────────────────────────────────────────────┐ ┌──────────────────────────────────────────────────┐
-│ LEGO 02: Artifact Discovery Engine               │ │ LEGO 03: LLM Engine & Model Gateway              │
-│ (PapersWithCode / HuggingFace / GitHub)          │ │ (OpenRouter Free Tier Router)                    │
-│ • Locates official repositories & datasets       │ │ • Parallel structured claim & metric extraction  │
-└────────────────────────┬─────────────────────────┘ └────────────────────────┬─────────────────────────┘
-                         │ CodeResource                                       │ ClaimsList
-                         └─────────────────────────┬──────────────────────────┘
-                                                   ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│ LEGO 04: StateGraph Orchestration Engine (LangGraph Python)             │
-│ • Coordinates fan-out execution and human-in-the-loop interrupt gate    │
-│   [fetch] ──► [extract & discover in parallel] ──► [plan]               │
-│                    ──► [APPROVE?] ──► [report]                          │
-└──────────────────────────────────────────┬──────────────────────────────┘
-                                           │
-                                           ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│ LEGO 05: Agent UI & Wire Protocol                                       │
-│ • CopilotKit 2.0 + AG-UI 1.0 (SSE)                                      │
-│ • Next.js React Interactive UI                                          │
-│ • Generative state cards & approval modals                              │
-└─────────────────────────────────────────────────────────────────────────┘
-
-[Deferred to Phase 7]
-LEGO 06: Zero-Setup Runtime & Kaggle Sandbox
-• Self-contained headless notebook execution environment on free Kaggle GPU.
+```mermaid
+flowchart TD
+    A[arXiv URL or PDF Target] --> B[Lego 01: Paper Ingestion & Markdown Engine<br/>PyMuPDF4LLM & arXiv API]
+    B -->|PaperArtifact| C[Lego 02: Artifact Discovery Engine<br/>PapersWithCode / Hugging Face / GitHub]
+    B -->|PaperArtifact| D[Lego 03: LLM Engine & Model Gateway<br/>OpenRouter Structured Claims]
+    C -->|CodeResource| E[Replication Planning Node<br/>Hardware Budget & Baseline Script]
+    D -->|ClaimsList| E
+    E -->|ReplicationPlan| F{Lego 04: Human Approval Gate<br/>LangGraph interrupt}
+    F -->|Approved| G[Replication Report & Code Generation]
+    F -->|Aborted| H[Workflow Terminated]
+    G --> I[Lego 05: Agent UI & Wire Protocol<br/>CopilotKit 2.0 & AG-UI 1.0 SSE]
+    G -.->|Deferred Phase 7| J[Lego 06: Zero-Setup Runtime<br/>Kaggle Sandbox Execution]
 ```
 
 ---

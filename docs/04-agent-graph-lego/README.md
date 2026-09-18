@@ -5,28 +5,16 @@ The **StateGraph Orchestration Engine** is the central nervous system of Zero Ga
 
 Crucially, it incorporates a **Human-in-the-Loop Interrupt Gate** prior to code generation or execution, ensuring the user reviews and confirms the replication scope.
 
-```
-             [fetch_paper]
-                   │
-           ┌───────┴───────┐
-           ▼               ▼
-   [extract_claims]  [find_code_dataset]
-           │               │
-           └───────┬───────┘
-                   ▼
-            [plan_baseline]
-                   │
-                   ▼
-            [human_approval] ◄─── (LangGraph interrupt gate: approve / revise / abort)
-                   │
-           ┌───────┴───────┐
-       [Approved]      [Aborted]
-           │               │
-           ▼               ▼
-     [write_report]      [END]
-           │
-           ▼
-         [END]
+```mermaid
+flowchart TD
+    fetch[fetch_paper] --> extract[extract_claims]
+    fetch --> discover[find_code_dataset]
+    extract --> plan[plan_baseline]
+    discover --> plan
+    plan --> gate{human_approval<br/>interrupt gate}
+    gate -->|Approved| report[write_report]
+    gate -->|Aborted| finish[END]
+    report --> finish
 ```
 
 ---

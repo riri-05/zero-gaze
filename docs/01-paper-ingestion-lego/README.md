@@ -3,11 +3,14 @@
 ## 1. Overview & Responsibility
 The **Paper Ingestion & Markdown Engine** transforms unstructured academic papers (arXiv links, PDF URLs, or local files) into normalized, clean Markdown preserving LaTeX mathematical formulas, tabular benchmarks, and section hierarchy.
 
-```
-[arXiv URL / ID] ──► [arXiv Query API] ──► [PDF Binary Stream] ──► [PyMuPDF4LLM] ──► [PaperArtifact (Pydantic)]
-                                                                          │ (Fallback)
-                                                                          ▼
-                                                                [ar5iv HTML Extractor]
+```mermaid
+flowchart LR
+    A[arXiv URL or ID] --> B[arXiv Query API]
+    B --> C[PDF Binary Stream]
+    C --> D[PyMuPDF4LLM Markdown Parser]
+    D --> E[PaperArtifact Model]
+    C -.->|Fallback on Failure| F[ar5iv HTML Extractor]
+    F --> E
 ```
 
 ---

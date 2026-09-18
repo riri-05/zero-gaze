@@ -13,47 +13,18 @@ Zero Gaze is an autonomous research replication agent built with LangGraph. It c
 
 Given an arXiv identifier or PDF link, Zero Gaze extracts empirical benchmark claims and mathematical formulations. It discovers official codebases and datasets across PapersWithCode, Hugging Face, and GitHub. It synthesizes a hardware-aware replication script. An interactive human-in-the-loop checkpoint gates execution. The agent then generates a structured replication report comparing baseline results against original published metrics.
 
-```
-                 ┌────────────────────────────────────────────────────────┐
-                 │                 ZERO GAZE SYSTEM MAP                   │
-                 └────────────────────────────────────────────────────────┘
-
-[arXiv Link / PDF]
-       │
-       ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│ LEGO 01: Paper Ingestion & Markdown Engine (PyMuPDF / arXiv API)        │
-│ • Extracts raw PDF streams to structured markdown with LaTeX and tables │
-└────────────────────────────────────┬────────────────────────────────────┘
-                                     │ PaperArtifact
-                                     ├────────────────────────────────────┐
-                                     ▼                                    ▼
-┌──────────────────────────────────────────────────┐ ┌──────────────────────────────────────────────────┐
-│ LEGO 02: Artifact Discovery Engine               │ │ LEGO 03: LLM Engine & Model Gateway              │
-│ (PapersWithCode / Hugging Face / GitHub)         │ │ (OpenRouter Free Tier Router)                    │
-│ • Locates official repositories and datasets     │ │ • Parallel structured claim and metric extraction│
-└────────────────────────┬─────────────────────────┘ └────────────────────────┬─────────────────────────┘
-                         │ CodeResource                                       │ ClaimsList
-                         └─────────────────────────┬──────────────────────────┘
-                                                   ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│ LEGO 04: StateGraph Orchestration Engine (LangGraph Python)             │
-│ • Coordinates fan-out execution and human-in-the-loop interrupt gate    │
-│   [fetch] -> [extract & discover in parallel] -> [plan]                 │
-│           -> [APPROVE?] -> [report]                                     │
-└──────────────────────────────────────────┬──────────────────────────────┘
-                                           │
-                                           ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│ LEGO 05: Agent UI & Wire Protocol                                       │
-│ • CopilotKit 2.0 + AG-UI 1.0 (SSE)                                      │
-│ • Next.js React interactive dashboard                                   │
-│ • Generative state cards and approval modals                            │
-└─────────────────────────────────────────────────────────────────────────┘
-
-[Deferred to Phase 7]
-LEGO 06: Zero-Setup Runtime & Kaggle Sandbox
-• Self-contained headless notebook execution environment on free Kaggle GPU.
+```mermaid
+flowchart TD
+    A[arXiv URL or PDF Target] --> B[Lego 01: Paper Ingestion & Markdown Engine<br/>PyMuPDF4LLM & arXiv API]
+    B -->|PaperArtifact| C[Lego 02: Artifact Discovery Engine<br/>PapersWithCode / Hugging Face / GitHub]
+    B -->|PaperArtifact| D[Lego 03: LLM Engine & Model Gateway<br/>OpenRouter Structured Claims]
+    C -->|CodeResource| E[Replication Planning Node<br/>Hardware Budget & Baseline Script]
+    D -->|ClaimsList| E
+    E -->|ReplicationPlan| F{Lego 04: Human Approval Gate<br/>LangGraph interrupt}
+    F -->|Approved| G[Replication Report & Code Generation]
+    F -->|Aborted| H[Workflow Terminated]
+    G --> I[Lego 05: Agent UI & Wire Protocol<br/>CopilotKit 2.0 & AG-UI 1.0 SSE]
+    G -.->|Deferred Phase 7| J[Lego 06: Zero-Setup Runtime<br/>Kaggle Sandbox Execution]
 ```
 
 ---

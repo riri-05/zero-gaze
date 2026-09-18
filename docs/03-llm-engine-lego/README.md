@@ -3,15 +3,13 @@
 ## 1. Overview & Responsibility
 The **LLM Engine & Model Gateway** provides unified, reliable LLM access through OpenRouter's free-tier endpoints. It enforces strict structured output via Pydantic schemas, manages prompt window token budgeting, and handles automatic fallback routing across model families.
 
-```
-                           ┌───────────────────────────────┐
-                           │      Zero Gaze LLM Gateway     │
-                           └──────────────┬────────────────┘
-                                          │
-                  ┌───────────────────────┼───────────────────────┐
-                  ▼                       ▼                       ▼
-      [Extraction Specialist]   [Reasoning & Plan Specialist] [Fast Fallback]
-      deepseek-v4-flash-0731:free      qwen3.8-27b:free       nemotron-3.5-lightning:free
+```mermaid
+flowchart TD
+    A[Zero Gaze LLM Gateway] --> B[Primary Extraction Specialist<br/>deepseek/deepseek-v4-flash-0731:free]
+    A --> C[Reasoning & Plan Specialist<br/>qwen/qwen3.8-27b:free]
+    A --> D[Fast Fallback Gateway<br/>nvidia/nemotron-3.5-lightning:free]
+    B -.->|HTTP 429 Failover| D
+    C -.->|HTTP 429 Failover| D
 ```
 
 ---
