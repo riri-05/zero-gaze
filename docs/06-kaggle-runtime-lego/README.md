@@ -95,3 +95,19 @@ def handle_kaggle_approval(graph, config, plan_payload):
    - The notebook starts with an assertion checking internet connectivity. If internet is disabled, it outputs clear instructions on toggling "Internet: On" in the Kaggle sidebar.
 2. **Deterministic Fallback Data:**
    - To guard against arXiv downtime during recruiter evaluations, the notebook bundles a pre-cached markdown artifact of the classic *LoRA: Low-Rank Adaptation of Large Language Models* (arXiv:2106.09685) so the notebook can execute even offline.
+
+---
+
+## 6. Packaged Notebook & Execution Sandbox
+
+The complete runtime is packaged in [`notebooks/zero_gaze_kaggle_free.ipynb`](../../notebooks/zero_gaze_kaggle_free.ipynb).
+Generated baseline scripts are executed inside the ephemeral sandbox via `zero_gaze.execution`:
+
+```python
+from zero_gaze.execution import SandboxRunner
+
+sandbox = SandboxRunner(timeout_seconds=60.0)
+result = sandbox.execute_script(plan.baseline_script)
+print(f"Success: {result.success}, Exit: {result.exit_code}")
+print("Captured metrics:", result.output_metrics)
+```

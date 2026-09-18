@@ -24,7 +24,7 @@ flowchart TD
     F -->|Approved| G[Replication Report & Code Generation]
     F -->|Aborted| H[Workflow Terminated]
     G --> I[Lego 05: Agent UI & Wire Protocol<br/>CopilotKit 2.0 & AG-UI 1.0 SSE]
-    G -.->|Deferred Phase 7| J[Lego 06: Zero-Setup Runtime<br/>Kaggle Sandbox Execution]
+    G --> J[Lego 06: Zero-Setup Runtime<br/>Kaggle & Local Sandbox Execution]
 ```
 
 ---
@@ -40,7 +40,7 @@ The architecture is divided into modular Lego pieces. Each module has isolated r
 | **Lego 03** | [`docs/03-llm-engine-lego/`](docs/03-llm-engine-lego/README.md) | OpenRouter / `langchain-openai` | Routes prompts over free-tier models with Pydantic structured output. |
 | **Lego 04** | [`docs/04-agent-graph-lego/`](docs/04-agent-graph-lego/README.md) | LangGraph Python | Orchestrates the state machine, fan-out edges, and human approval gates. |
 | **Lego 05** | [`docs/05-agent-ui-agui-lego/`](docs/05-agent-ui-agui-lego/README.md) | CopilotKit 2.0 / AG-UI 1.0 | Streams agent thoughts and exposes interactive approvals to Next.js. |
-| **Lego 06** | [`docs/06-kaggle-runtime-lego/`](docs/06-kaggle-runtime-lego/README.md) | Kaggle Python Kernel | (Deferred) Free-tier T4 GPU single-notebook execution target. |
+| **Lego 06** | [`docs/06-kaggle-runtime-lego/`](docs/06-kaggle-runtime-lego/README.md) | Subprocess Sandbox / Kaggle Kernel | Ephemeral execution sandbox and free-tier Kaggle GPU notebook. |
 
 ---
 
@@ -59,8 +59,20 @@ The architecture is divided into modular Lego pieces. Each module has isolated r
 ### Prerequisites
 
 - Python 3.11 or higher
-- Node.js 20 or higher (for the frontend dashboard)
 - OpenRouter API key
+
+### Installation
+
+```bash
+# Clone repository
+git clone https://github.com/riri-05/zero-gaze.git
+cd zero-gaze
+
+# Create virtual environment and install in development mode
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -e ".[dev]"
+```
 
 ### Environment Configuration
 
@@ -74,15 +86,33 @@ REASONING_MODEL="qwen/qwen3.8-27b:free"
 FAST_MODEL="nvidia/nemotron-3.5-lightning:free"
 ```
 
+### Command Line Usage
+
+```bash
+# Run automated paper replication directly from terminal
+zero-gaze replicate 2106.09685 --auto-approve
+
+# Start the FastAPI AG-UI server and web dashboard
+zero-gaze serve --host 127.0.0.1 --port 8000
+```
+
+Open `http://127.0.0.1:8000` in your browser to interact with the visual dashboard and live Server-Sent Events stream.
+
+### Running the Test Suite
+
+```bash
+pytest tests/
+```
+
 ---
 
 ## Project Structure
 
 ```
 zero-gaze/
-├── assets/                          # Static branding assets
+├── assets/                               # Static branding assets
 │   └── logo.png
-├── docs/                            # Modular Lego architecture blueprints
+├── docs/                                 # Modular Lego architecture blueprints
 │   ├── 00-architecture-overview/
 │   ├── 01-paper-ingestion-lego/
 │   ├── 02-artifact-discovery-lego/
@@ -90,21 +120,36 @@ zero-gaze/
 │   ├── 04-agent-graph-lego/
 │   ├── 05-agent-ui-agui-lego/
 │   └── 06-kaggle-runtime-lego/
-├── .gitignore                       # Git ignore rules protecting secrets and caches
-└── README.md                        # Project documentation and roadmap
+├── notebooks/                            # Standalone execution notebooks
+│   └── zero_gaze_kaggle_free.ipynb       # Self-contained Kaggle notebook with ipywidgets
+├── src/
+│   └── zero_gaze/                        # Core Python package
+│       ├── cli.py                        # Terminal CLI entry point
+│       ├── core/                         # Statically typed Pydantic models & errors
+│       ├── ingestion/                    # PyMuPDF4LLM & arXiv API engine
+│       ├── discovery/                    # GitHub, HF & synthetic stub generator
+│       ├── llm/                          # OpenRouter gateway & structured extractor
+│       ├── graph/                        # LangGraph StateGraph & interrupt gate
+│       ├── server/                       # FastAPI backend & AG-UI SSE protocol
+│       └── execution/                    # Isolated subprocess execution sandbox
+├── tests/
+│   └── unit/                             # 65 automated unit tests across all 7 modules
+├── pyproject.toml                        # Build system, dependencies, and CLI script
+├── .gitignore                            # Git ignore rules protecting secrets and caches
+└── README.md                             # Project documentation and roadmap
 ```
 
 ---
 
 ## Roadmap
 
-Development proceeds across seven verified phases. Each phase requires smoke testing and automated unit test verification before committing.
+Development proceeded across seven verified phases. Each phase was verified through manual smoke testing and unit tests before committing.
 
-- [x] **Phase 0: Architectural Blueprint & Documentation.** Specifications for Lego 01 through Lego 05.
-- [ ] **Phase 1: Core Foundation & Domain Models.** Pydantic schemas, error definitions, and package configuration.
-- [ ] **Phase 2: Paper Ingestion Engine.** arXiv API client, PDF stream downloader, and PyMuPDF4LLM parser.
-- [ ] **Phase 3: Artifact Discovery Engine.** PapersWithCode, Hugging Face, and GitHub search clients with synthetic stub generator.
-- [ ] **Phase 4: LLM Engine & Routing Gateway.** OpenRouter fallback cascade, model routing matrix, and structured extraction.
-- [ ] **Phase 5: LangGraph State Machine & Gate.** StateGraph with parallel fan-out, MemorySaver checkpointing, and interrupt handlers.
-- [ ] **Phase 6: Agent UI & Wire Protocol.** FastAPI backend, AG-UI 1.0 SSE stream endpoint, and Next.js CopilotKit dashboard.
-- [ ] **Phase 7: Execution Sandbox & Kaggle Runtime.** Isolated execution environment and Kaggle notebook release.
+- [x] **Phase 0: Architectural Blueprint & Documentation.** Specifications for Lego 01 through Lego 06.
+- [x] **Phase 1: Core Foundation & Domain Models.** Pydantic schemas, error definitions, and package configuration.
+- [x] **Phase 2: Paper Ingestion Engine.** arXiv API client, PDF stream downloader, and PyMuPDF4LLM parser.
+- [x] **Phase 3: Artifact Discovery Engine.** PapersWithCode, Hugging Face, and GitHub search clients with synthetic stub generator.
+- [x] **Phase 4: LLM Engine & Routing Gateway.** OpenRouter fallback cascade, model routing matrix, and structured extraction.
+- [x] **Phase 5: LangGraph State Machine & Gate.** StateGraph with parallel fan-out, MemorySaver checkpointing, and interrupt handlers.
+- [x] **Phase 6: Agent UI & Wire Protocol.** FastAPI backend, AG-UI 1.0 SSE stream endpoint, and Next.js CopilotKit dashboard.
+- [x] **Phase 7: Execution Sandbox & Kaggle Runtime.** Isolated execution environment and Kaggle notebook release.

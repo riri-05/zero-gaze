@@ -57,29 +57,14 @@ AG-UI transmits structured events over `text/event-stream`:
 ```python
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from copilotkit import CopilotKitRemoteEndpoint, LangGraphAGUIAgent
-from zero_gaze.core.graph import build_zero_gaze_graph
+from zero_gaze.server.app import create_app
+from zero_gaze.server.routes import router
 
-app = FastAPI(title="Zero Gaze Agent API")
+# Factory creating configured FastAPI service
+app = create_app()
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-graph = build_zero_gaze_graph()
-
-agent = LangGraphAGUIAgent(
-    name="zero_gaze_agent",
-    description="ML Paper Replication Agent powered by LangGraph",
-    graph=graph,
-)
-
-endpoint = CopilotKitRemoteEndpoint(agents=[agent])
-endpoint.add_fastapi_endpoint(app, path="/api/copilotkit")
+# CLI entry point to launch server
+# zero-gaze serve --host 127.0.0.1 --port 8000
 ```
 
 ---

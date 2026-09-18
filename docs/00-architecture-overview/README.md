@@ -14,7 +14,7 @@ flowchart TD
     F -->|Approved| G[Replication Report & Code Generation]
     F -->|Aborted| H[Workflow Terminated]
     G --> I[Lego 05: Agent UI & Wire Protocol<br/>CopilotKit 2.0 & AG-UI 1.0 SSE]
-    G -.->|Deferred Phase 7| J[Lego 06: Zero-Setup Runtime<br/>Kaggle Sandbox Execution]
+    G --> J[Lego 06: Zero-Setup Runtime<br/>Kaggle & Local Sandbox Execution]
 ```
 
 ---
@@ -28,7 +28,7 @@ flowchart TD
 | **Lego 03** | [`../03-llm-engine-lego/`](../03-llm-engine-lego/README.md) | OpenRouter / `langchain-openai` | Route prompts across free-tier models with structured JSON schema outputs. |
 | **Lego 04** | [`../04-agent-graph-lego/`](../04-agent-graph-lego/README.md) | LangGraph | Orchestrate nodes, typed state machine, checkpoint persistence, and human interrupt gates. |
 | **Lego 05** | [`../05-agent-ui-agui-lego/`](../05-agent-ui-agui-lego/README.md) | CopilotKit 2.0 / AG-UI 1.0 | Connect agent state to Next.js frontend over AG-UI Server-Sent Events protocol. |
-| **Lego 06** | [`../06-kaggle-runtime-lego/`](../06-kaggle-runtime-lego/README.md) | Kaggle Notebook Runtime | (Deferred) Single-click zero-install replication execution on free Kaggle GPU/CPU. |
+| **Lego 06** | [`../06-kaggle-runtime-lego/`](../06-kaggle-runtime-lego/README.md) | Subprocess Sandbox / Kaggle Kernel | Ephemeral execution sandbox and free-tier Kaggle GPU notebook runtime. |
 
 ---
 
@@ -38,4 +38,4 @@ flowchart TD
 2. **Parallel Fan-Out.** Disjoint nodes (`extract_claims` and `find_code_dataset`) execute concurrently from the ingested paper artifact.
 3. **Defensive Fallbacks.** If upstream services fail (such as arXiv HTML missing or PapersWithCode empty), the system falls back gracefully to secondary channels or synthetic baselines.
 4. **Mandatory Human-in-the-Loop Checkpoint.** The agent never attempts to execute generated code without explicit human operator confirmation.
-5. **Phased Delivery.** The primary delivery phase targets the core Python package, CLI, and AG-UI web interface. The Kaggle notebook runtime is deferred to subsequent release packaging.
+5. **Dual-Surface Delivery.** The complete replication pipeline is executable locally via the `zero-gaze` CLI and FastAPI AG-UI web server, as well as remotely inside standalone Kaggle GPU notebooks.
