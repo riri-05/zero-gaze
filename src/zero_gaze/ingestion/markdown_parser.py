@@ -100,7 +100,6 @@ class MarkdownParser:
                     "rows": rows,
                     "row_count": len(rows),
                 })
-
         for line in lines:
             if TABLE_ROW_PATTERN.match(line):
                 current_table_lines.append(line)
@@ -115,7 +114,11 @@ class MarkdownParser:
         return tables
 
     @classmethod
-    def parse_pdf(cls, pdf_bytes: bytes) -> tuple[str, list[str], list[dict[str, Any]]]:
+    def parse_pdf(
+        cls,
+        pdf_bytes: bytes,
+        max_pages: int = 8,
+    ) -> tuple[str, list[str], list[dict[str, Any]]]:
         """Convert PDF binary stream to structured Markdown using PyMuPDF4LLM."""
         if not pdf_bytes:
             raise IngestionError("Cannot parse empty PDF byte payload.")
@@ -129,7 +132,13 @@ class MarkdownParser:
             ) from err
 
         try:
-            markdown_content = pymupdf4llm.to_markdown(doc)
+            page_range = list(range(min(max_pages, len(doc))))
+            markdown_content = pymupdf4llm.to_markdown(
+                doc,
+                pages=page_range,
+                ignore_images=True,
+                ignore_graphics=True,
+            )
         except Exception as err:
             raise IngestionError(
                 f"PyMuPDF4LLM failed to convert document to markdown: {err}",

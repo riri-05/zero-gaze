@@ -34,7 +34,7 @@ class ClaimExtractor:
 
     def extract_claims(self, paper_markdown: str, paper_title: str) -> ClaimsList:
         """Extract structured benchmark claims from paper markdown text."""
-        budgeted_text = TokenBudgeter.budget_paper_text(paper_markdown, max_characters=30000)
+        budgeted_text = TokenBudgeter.budget_paper_text(paper_markdown, max_characters=8000)
 
         prompt = (
             f"Paper Title: {paper_title}\n\n"
