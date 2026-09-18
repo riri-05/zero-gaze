@@ -28,6 +28,9 @@ dev = [
     "pytest-asyncio>=0.23.0",
 ]
 
+[project.scripts]
+zero-gaze = "zero_gaze.cli:main"
+
 [tool.hatch.build.targets.wheel]
 packages = ["src/zero_gaze"]
 
