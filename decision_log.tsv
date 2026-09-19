@@ -1,0 +1,7 @@
+timestamp	decision	rationale	artifact
+2026-09-19T00:00:00Z	Frame: Done Predicate	Done means the engine generates code, executes it, catches exceptions, and prompts the LLM with the stack trace for iterative repair.	plan
+2026-09-19T00:00:00Z	Frame: Rigor Level	High. This replaces the core replication loop. All work will be verified by a harness before integration.	plan2026-09-19T00:01:00Z	Design: Verification Harness	Baseline harness script confirms the current sandbox fails immediately on broken code without retries.	harness.py
+2026-09-19T00:02:00Z	Design: IterativeCoder	The engine requires a tight loop: LLM generate -> Sandbox execute -> LLM repair. This will live in zero_gaze/llm/coder.py.	plan
+2026-09-19T00:03:00Z	Design: Sandbox Enhancements	Local subprocess is unsafe. Since Docker is available, SandboxRunner will use docker run for absolute isolation.	plan
+2026-09-19T00:04:00Z	Run: IterativeCoder	Implemented generate_and_refine in coder.py with stack trace feedback loop.	coder.py
+2026-09-19T00:05:00Z	Run: LangGraph Wiring	Added execute_baseline_node, wired it into workflow.py, and updated write_report_node to use ExecutionResult.	nodes.py
