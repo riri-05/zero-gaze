@@ -16,9 +16,21 @@ def create_app() -> FastAPI:
         version="0.1.0",
     )
 
+    import os
+
+    cors_origins = [
+        origin.strip()
+        for origin in os.getenv(
+            "CORS_ORIGINS",
+            "http://localhost:3000,http://localhost:5173,http://127.0.0.1:3000,http://127.0.0.1:5173",
+        ).split(",")
+        if origin.strip()
+    ]
+
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],
+        allow_origins=cors_origins,
+        allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$",
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
@@ -26,11 +38,19 @@ def create_app() -> FastAPI:
 
     app.include_router(router)
 
+    from pathlib import Path
+    dist_dir = Path(__file__).resolve().parent.parent.parent.parent / "frontend" / "dist"
+    assets_dir = dist_dir / "assets"
+    if assets_dir.is_dir():
+        from fastapi.staticfiles import StaticFiles
+        app.mount("/assets", StaticFiles(directory=str(assets_dir)), name="frontend_assets")
+
     @app.get("/", response_class=HTMLResponse, summary="Interactive Zero Gaze Dashboard")
     def index() -> str:
-        """Embedded interactive replication control dashboard."""
+        """Interactive replication control dashboard."""
+        if dist_dir.is_dir() and (dist_dir / "index.html").is_file():
+            return (dist_dir / "index.html").read_text(encoding="utf-8")
         return """<!DOCTYPE html>
-<html lang="en">
 <head>
   <meta charset="UTF-8">
   <title>Zero Gaze — Replication Dashboard</title>

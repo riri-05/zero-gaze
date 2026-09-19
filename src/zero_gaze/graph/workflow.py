@@ -22,8 +22,10 @@ from zero_gaze.graph.nodes import (
 
 def route_after_approval(state: AgentState) -> str:
     """Conditional routing edge determining next node based on human decision."""
-    if state.approval.decision == HumanDecision.ABORTED:
+    if not state.approval or state.approval.decision == HumanDecision.ABORTED:
         return END
+    if state.approval.decision == HumanDecision.REVISED:
+        return "plan_baseline"
     return "execute_baseline"
 
 

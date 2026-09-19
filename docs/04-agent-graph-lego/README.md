@@ -16,8 +16,10 @@ flowchart TD
     extract --> plan[plan_baseline]
     discover --> plan
     plan --> gate{human_approval<br/>interrupt gate}
-    gate -->|Approved| report[write_report]
+    gate -->|Approved| exec[execute_baseline]
+    gate -->|Revised| plan
     gate -->|Aborted| finish[END]
+    exec --> report[write_report]
     report --> finish
 ```
 
@@ -33,8 +35,10 @@ flowchart TD
 | **`find_code_dataset`**| Repository Discovery Return | `code_resource` non-null | **`plan_baseline`** | `state.code_resource = CodeResource` |
 | **`plan_baseline`** | Join of Claims + Code | Both branches populated | **`human_approval`** | `state.plan = ReplicationPlan` |
 | **`human_approval`** | `interrupt()` Triggered | Execution halted | **Awaiting External Resume** | Transmits interrupt payload to operator |
-| **Awaiting Resume** | `Command(resume=payload)` | `decision == "approved"` | **`write_report`** | `state.approval = HumanApproval(APPROVED)` |
+| **Awaiting Resume** | `Command(resume=payload)` | `decision == "approved"` | **`execute_baseline`** | `state.approval = HumanApproval(APPROVED)` |
+| **Awaiting Resume** | `Command(resume=payload)` | `decision == "revised"` | **`plan_baseline`** | `state.approval = HumanApproval(REVISED)` |
 | **Awaiting Resume** | `Command(resume=payload)` | `decision == "aborted"` | **`__end__`** | `state.approval = HumanApproval(ABORTED)` |
+| **`execute_baseline`** | Execution Result Return | Process finished | **`write_report`** | `state.execution_result = ExecutionResult` |
 | **`write_report`** | Report Synthesis Return | `report` non-null | **`__end__`** | `state.report = ReplicationReport` |
 
 ---
@@ -86,6 +90,6 @@ When execution reaches the gate, the engine yields an interrupt payload:
 
 ### 5.2 Resumption Contract
 Execution remains suspended until an external operator or client submits a `Command(resume=payload)`:
-- If `payload.decision` is `"approved"`: The conditional edge routes to `write_report`.
+- If `payload.decision` is `"approved"`: The conditional edge routes to `execute_baseline`, executing the approved baseline script directly in the sandbox with LLM repair fallback, followed by `write_report`.
+- If `payload.decision` is `"revised"`: The conditional edge routes back to `plan_baseline` incorporating reviewer feedback into prompt re-synthesis.
 - If `payload.decision` is `"aborted"`: The conditional edge routes immediately to `END`.
-- If `payload.overrides` are supplied: Configuration parameters (such as `target_hardware` or hyperparameter adjustments) update the active state before execution resumes.

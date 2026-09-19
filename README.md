@@ -93,7 +93,7 @@ REPLICATION SUMMARY
 zero-gaze serve --host 127.0.0.1 --port 8000
 ```
 
-Open `http://127.0.0.1:8000` in your browser. The embedded AG-UI 1.0 Server-Sent Events dashboard lets you submit arXiv IDs, inspect extracted benchmark claims, and authorize replication plans interactively.
+Open `http://127.0.0.1:8000` in your browser. The embedded React 19 + AG-UI 1.0 Server-Sent Events dashboard lets you submit arXiv IDs, inspect real-time streaming benchmark claims, edit and authorize baseline code in an interactive approval cockpit, and inspect live sandbox execution logs.
 
 ---
 

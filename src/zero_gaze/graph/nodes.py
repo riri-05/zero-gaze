@@ -14,8 +14,8 @@ from zero_gaze.core.models.state import AgentState, HumanApproval, HumanDecision
 from zero_gaze.discovery.engine import ArtifactDiscoveryEngine
 from zero_gaze.ingestion.engine import PaperIngestionEngine
 from zero_gaze.llm.coder import IterativeCoder
+from zero_gaze.execution.sandbox import SandboxRunner
 from zero_gaze.llm.extractor import ClaimExtractor, ReplicationPlanner
-
 logger = logging.getLogger(__name__)
 
 
@@ -28,13 +28,15 @@ class NodeFactory:
         discovery_engine: ArtifactDiscoveryEngine | None = None,
         claim_extractor: ClaimExtractor | None = None,
         replication_planner: ReplicationPlanner | None = None,
+        iterative_coder: IterativeCoder | None = None,
+        sandbox_runner: SandboxRunner | None = None,
     ) -> None:
         self.ingestion_engine = ingestion_engine or PaperIngestionEngine()
         self.discovery_engine = discovery_engine or ArtifactDiscoveryEngine()
         self.claim_extractor = claim_extractor or ClaimExtractor()
         self.replication_planner = replication_planner or ReplicationPlanner()
-        self.iterative_coder = IterativeCoder(max_retries=1)
-
+        self.sandbox_runner = sandbox_runner or SandboxRunner()
+        self.iterative_coder = iterative_coder or IterativeCoder(sandbox=self.sandbox_runner, max_retries=1)
     def fetch_paper_node(self, state: AgentState) -> dict[str, Any]:
         """Ingest paper from arXiv URL or ID and extract structured markdown."""
         logger.info("Executing node: fetch_paper for target '%s'", state.paper_target)
@@ -132,28 +134,39 @@ class NodeFactory:
         return {"approval": approval}
 
     def execute_baseline_node(self, state: AgentState) -> dict[str, Any]:
-        """Execute generated code iteratively with LLM correction."""
+        """Execute approved baseline script or iteratively refine with LLM."""
         logger.info("Executing node: execute_baseline")
-        if state.approval.decision != HumanDecision.APPROVED:
+        if not state.approval or state.approval.decision != HumanDecision.APPROVED:
             return {}
 
         try:
+            overrides = state.approval.config_overrides or {}
+            candidate_script = overrides.get("script") or (state.plan.baseline_script if state.plan else None)
+
+            # If an approved baseline script exists, execute it directly first
+            if candidate_script and len(candidate_script.strip()) > 10:
+                logger.info("Executing operator-approved baseline script directly in sandbox")
+                timeout = float(overrides.get("timeout_seconds", self.sandbox_runner.timeout_seconds))
+                self.sandbox_runner.timeout_seconds = timeout
+                result = self.sandbox_runner.execute_script(candidate_script)
+                if result.success:
+                    return {"execution_result": result}
+                logger.warning(
+                    "Approved baseline script failed (exit %d), attempting LLM repair: %s",
+                    result.exit_code,
+                    result.error_message,
+                )
+
+            # Fallback to iterative coder generation and refinement
             claims = state.claims
-            # For claims List we pass an object, but IterativeCoder needs ClaimsList
-            # The extractor returns ClaimsList, but AgentState stores list[ClaimItem].
-            # Let's rebuild a ClaimsList for the coder.
             from zero_gaze.core.models.claims import ClaimsList
             claims_list = ClaimsList(claims=claims) if claims else None
-            
             paper_ctx = state.paper.full_text_markdown if state.paper else state.paper_target
             best_code, result = self.iterative_coder.generate_and_refine(claims=claims_list, paper_context=paper_ctx)
-            
-            
             return {"execution_result": result}
         except Exception as err:
             logger.error("Failed to execute baseline: %s", err)
             return {"errors": [f"execute_baseline failed: {err}"]}
-
     def write_report_node(self, state: AgentState) -> dict[str, Any]:
         """Generate final replication report summary."""
         logger.info("Executing node: write_report")

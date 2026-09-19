@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 T = TypeVar("T", bound=BaseModel)
 
-DEFAULT_PRIMARY_MODEL = "nvidia/nemotron-3.5-lightning:free"
+DEFAULT_PRIMARY_MODEL = "deepseek/deepseek-v4-flash-0731:free"
 DEFAULT_REASONING_MODEL = "qwen/qwen3.8-27b:free"
 DEFAULT_FAST_MODEL = "nvidia/nemotron-3.5-lightning:free"
 DEFAULT_BASE_URL = "https://openrouter.ai/api/v1"

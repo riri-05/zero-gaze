@@ -5,8 +5,8 @@ from __future__ import annotations
 import re
 
 BIBLIOGRAPHY_PATTERNS = [
-    re.compile(r"^#{1,3}\s+(?:references|bibliography|works cited)\b.*$", re.IGNORECASE | re.MULTILINE),
-    re.compile(r"^\[\d+\]\s+[A-Z].+$", re.MULTILINE),
+    re.compile(r"^#{1,4}\s*(?:\d+\.?\s*)?(?:references|bibliography|works cited)\b.*$", re.IGNORECASE | re.MULTILINE),
+    re.compile(r"^\*\*(?:references|bibliography|works cited)\*\*\s*$", re.IGNORECASE | re.MULTILINE),
 ]
 
 

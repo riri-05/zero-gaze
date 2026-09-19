@@ -153,7 +153,7 @@ def test_route_after_approval() -> None:
         paper_target="test",
         approval=HumanApproval(decision=HumanDecision.REVISED),
     )
-    assert route_after_approval(revised_state) == "execute_baseline"
+    assert route_after_approval(revised_state) == "plan_baseline"
 
     aborted_state = AgentState(
         paper_target="test",

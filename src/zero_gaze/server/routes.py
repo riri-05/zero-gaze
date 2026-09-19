@@ -15,8 +15,11 @@ from zero_gaze.server.sse import (
     format_agent_error,
     format_agent_finish,
     format_agent_start,
+    format_execution_stdout,
     format_interrupt_requested,
     format_interrupt_resolved,
+    format_node_transition,
+    format_state_delta,
     format_state_snapshot,
 )
 
@@ -161,13 +164,40 @@ async def stream_replication(
             current_state = snapshot.values
 
             if not current_state and paper_target:
+                queue: asyncio.Queue[tuple[str, Any]] = asyncio.Queue()
                 loop = asyncio.get_running_loop()
-                current_state, _, is_interrupted = await loop.run_in_executor(
-                    None, runner.start_replication, paper_target, thread_id
-                )
-            else:
-                is_interrupted = bool(snapshot.next and "human_approval" in snapshot.next)
 
+                def run_stream() -> None:
+                    try:
+                        for chunk in runner.graph.stream(
+                            {"paper_target": paper_target},
+                            config=config,
+                            stream_mode="updates",
+                        ):
+                            loop.call_soon_threadsafe(queue.put_nowait, ("update", chunk))
+                        loop.call_soon_threadsafe(queue.put_nowait, ("done", None))
+                    except Exception as exc:
+                        loop.call_soon_threadsafe(queue.put_nowait, ("error", exc))
+
+                loop.run_in_executor(None, run_stream)
+
+                while True:
+                    msg_type, payload = await queue.get()
+                    if msg_type == "done":
+                        break
+                    elif msg_type == "error":
+                        raise payload
+                    elif msg_type == "update":
+                        for node_name, node_update in payload.items():
+                            if node_name == "__interrupt__":
+                                continue
+                            yield format_node_transition(thread_id, node_name, "completed")
+                            yield format_state_delta(thread_id, node_update)
+
+                snapshot = runner.graph.get_state(config)
+                current_state = snapshot.values
+
+            is_interrupted = bool(snapshot.next and "human_approval" in snapshot.next)
             yield format_state_snapshot(thread_id, current_state)
 
             if is_interrupted:
@@ -189,7 +219,6 @@ async def stream_replication(
         except Exception as err:
             logger.error("Stream generation failed: %s", err)
             yield format_agent_error(thread_id, str(err))
-
     return StreamingResponse(
         event_generator(),
         media_type="text/event-stream",

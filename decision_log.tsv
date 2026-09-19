@@ -1,7 +1,14 @@
 timestamp	decision	rationale	artifact
 2026-09-19T00:00:00Z	Frame: Done Predicate	Done means the engine generates code, executes it, catches exceptions, and prompts the LLM with the stack trace for iterative repair.	plan
-2026-09-19T00:00:00Z	Frame: Rigor Level	High. This replaces the core replication loop. All work will be verified by a harness before integration.	plan2026-09-19T00:01:00Z	Design: Verification Harness	Baseline harness script confirms the current sandbox fails immediately on broken code without retries.	harness.py
+2026-09-19T00:00:00Z	Frame: Rigor Level	High. This replaces the core replication loop. All work will be verified by a harness before integration.	plan
+2026-09-19T00:01:00Z	Design: Verification Harness	Baseline harness script confirms the current sandbox fails immediately on broken code without retries.	harness.py
 2026-09-19T00:02:00Z	Design: IterativeCoder	The engine requires a tight loop: LLM generate -> Sandbox execute -> LLM repair. This will live in zero_gaze/llm/coder.py.	plan
 2026-09-19T00:03:00Z	Design: Sandbox Enhancements	Local subprocess is unsafe. Since Docker is available, SandboxRunner will use docker run for absolute isolation.	plan
 2026-09-19T00:04:00Z	Run: IterativeCoder	Implemented generate_and_refine in coder.py with stack trace feedback loop.	coder.py
 2026-09-19T00:05:00Z	Run: LangGraph Wiring	Added execute_baseline_node, wired it into workflow.py, and updated write_report_node to use ExecutionResult.	nodes.py
+2026-09-19T01:00:00Z	Security: Sandbox Environment Sanitization	Sanitized subprocess environment by whitelisting safe variables and stripping host API keys and secrets.	sandbox.py
+2026-09-19T01:05:00Z	Security: Process Group Containment	Isolated process tree with start_new_session=True and os.killpg termination to prevent orphaned workers.	sandbox.py
+2026-09-19T01:10:00Z	Architecture: Plan-Execution Alignment	Wired execute_baseline_node to execute the operator-approved baseline_script directly before attempting LLM repair.	nodes.py
+2026-09-19T01:15:00Z	Architecture: Resilient Approval Routing	Wired HumanDecision.REVISED to route back to plan_baseline instead of aborting.	workflow.py
+2026-09-19T01:20:00Z	Protocol: AG-UI 2.0 Real-Time Streaming	Replaced batch execution in stream_replication with asyncio.Queue over LangGraph stream_mode updates.	routes.py
+2026-09-19T01:30:00Z	UI: Modern React 19 Cockpit	Built React 19 + TypeScript + Tailwind frontend with real-time SSE hook, pipeline stepper, approval cockpit, and live terminal.	frontend/

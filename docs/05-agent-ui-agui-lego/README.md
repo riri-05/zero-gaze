@@ -46,13 +46,14 @@ AG-UI transmits structured events using standard MIME type `text/event-stream`. 
 | Event Type | Direction | Payload Schema | Functional Semantic |
 | :--- | :--- | :--- | :--- |
 | **`agent:start`** | Server -> Client | `{"thread_id": string, "paper_target": string, "protocol": "AG-UI/1.0"}` | Signals agent instantiation and thread binding |
+| **`node:transition`** | Server -> Client | `{"thread_id": string, "node": string, "status": "running" \| "completed"}` | Real-time pipeline stepper status update |
 | **`state:delta`** | Server -> Client | `{"thread_id": string, "delta": object}` | Emits incremental state mutations from individual nodes |
 | **`state:snapshot`**| Server -> Client | `{"thread_id": string, "state": AgentState}` | Full state synchronization of the active checkpoint |
 | **`interrupt:requested`** | Server -> Client | `{"thread_id": string, "prompt": string, "plan": object, "code_resource": object}` | Halts UI stream and displays operator confirmation card |
 | **`interrupt:resolved`** | Client -> Server | `{"thread_id": string, "decision": "approved" \| "aborted" \| "revised"}` | Signals operator verdict to resume state machine |
+| **`execution:stdout`** | Server -> Client | `{"thread_id": string, "chunk": string}` | Real-time terminal log chunk emitted from execution sandbox |
 | **`agent:finish`** | Server -> Client | `{"thread_id": string, "status": "completed", "report": ReplicationReport}` | Signals terminal completion and delivers final markdown report |
 | **`agent:error`** | Server -> Client | `{"thread_id": string, "error": string}` | Emits diagnostic details on unrecoverable failure |
-
 ---
 
 ## 3. REST API Endpoint Specification
@@ -62,7 +63,7 @@ The FastAPI presentation service exposes the following HTTP endpoints:
 | Method | Endpoint Path | Request Body | Response Status | Functional Description |
 | :--- | :--- | :--- | :--- | :--- |
 | **GET** | `/health` | None | `200 OK` | Liveness and health check |
-| **GET** | `/` | None | `200 OK (text/html)` | Serves the embedded interactive Tailwind CSS replication dashboard |
+| **GET** | `/` | None | `200 OK (text/html)` | Serves the production React 19 + TypeScript + Tailwind replication cockpit |
 | **POST** | `/api/replication/start` | `StartReplicationRequest` | `200 OK` | Starts replication pipeline up to the interrupt gate |
 | **POST** | `/api/replication/approve`| `ApproveReplicationRequest`| `200 OK` | Resolves the interrupt gate and resumes execution |
 | **GET** | `/api/replication/state/{id}`| None | `200 OK` / `404 Not Found` | Queries current state checkpoint snapshot |

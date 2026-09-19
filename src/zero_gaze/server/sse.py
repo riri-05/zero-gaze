@@ -88,3 +88,20 @@ def format_agent_error(thread_id: str, error: str) -> str:
         "thread_id": thread_id,
         "error": error,
     }).format()
+
+
+def format_node_transition(thread_id: str, node: str, status: str = "completed") -> str:
+    """Format pipeline node lifecycle event."""
+    return AGUIEvent("node:transition", {
+        "thread_id": thread_id,
+        "node": node,
+        "status": status,
+    }).format()
+
+
+def format_execution_stdout(thread_id: str, chunk: str) -> str:
+    """Format real-time execution stdout stream chunk."""
+    return AGUIEvent("execution:stdout", {
+        "thread_id": thread_id,
+        "chunk": chunk,
+    }).format()
