@@ -9,7 +9,6 @@ from zero_gaze.discovery.clients import (
     PapersWithCodeClient,
 )
 from zero_gaze.discovery.engine import ArtifactDiscoveryEngine
-from zero_gaze.discovery.synthetic_stub import SyntheticStubGenerator
 
 
 def test_huggingface_client_parses_linked_assets() -> None:
@@ -93,20 +92,6 @@ def test_paperswithcode_client_parses_repositories() -> None:
         assert repos == ["https://github.com/microsoft/LoRA"]
 
 
-def test_synthetic_stub_generator_output() -> None:
-    code = SyntheticStubGenerator.generate_stub(
-        paper_title="Attention Is All You Need",
-        arxiv_id="1706.03762",
-        target_metric="BLEU",
-        epochs=3,
-    )
-    assert "Attention Is All You Need" in code
-    assert "1706.03762" in code
-    assert "class SyntheticBaselineModel" in code
-    assert "def run_experiment()" in code
-    assert "torch" in code
-
-
 def test_discovery_engine_returns_official_repo() -> None:
     engine = ArtifactDiscoveryEngine()
     mock_hf = {"primary_model": "test-org/model", "primary_dataset": "test-org/dataset"}
@@ -147,7 +132,7 @@ def test_discovery_engine_returns_community_repo() -> None:
         assert resource.stars == 15
 
 
-def test_discovery_engine_falls_back_to_synthetic_stub() -> None:
+def test_discovery_engine_falls_back_to_unavailable() -> None:
     engine = ArtifactDiscoveryEngine()
 
     with patch.object(engine.hf_client, "query_paper", return_value=None), \
@@ -155,11 +140,9 @@ def test_discovery_engine_falls_back_to_synthetic_stub() -> None:
          patch.object(engine.pwc_client, "query_paper_repositories", return_value=[]):
         resource = engine.discover("0000.0000", "Unknown Method")
 
-        assert resource.status == RepoStatus.SYNTHETIC_STUB
+        assert resource.status == RepoStatus.UNAVAILABLE
         assert resource.repo_url is None
-        assert resource.generated_baseline_code is not None
-        assert "SyntheticBaselineModel" in resource.generated_baseline_code
-
+        assert resource.generated_baseline_code is None
 
 def test_discovery_engine_idempotent_caching() -> None:
     engine = ArtifactDiscoveryEngine()

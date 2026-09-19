@@ -6,12 +6,10 @@ from zero_gaze.discovery.clients import (
     PapersWithCodeClient,
 )
 from zero_gaze.discovery.engine import ArtifactDiscoveryEngine
-from zero_gaze.discovery.synthetic_stub import SyntheticStubGenerator
 
 __all__ = [
     "ArtifactDiscoveryEngine",
     "GitHubDiscoveryClient",
     "HuggingFaceDiscoveryClient",
     "PapersWithCodeClient",
-    "SyntheticStubGenerator",
 ]

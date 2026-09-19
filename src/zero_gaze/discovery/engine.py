@@ -9,7 +9,7 @@ from zero_gaze.discovery.clients import (
     HuggingFaceDiscoveryClient,
     PapersWithCodeClient,
 )
-from zero_gaze.discovery.synthetic_stub import SyntheticStubGenerator
+
 
 logger = logging.getLogger(__name__)
 
@@ -22,12 +22,12 @@ class ArtifactDiscoveryEngine:
         github_client: GitHubDiscoveryClient | None = None,
         hf_client: HuggingFaceDiscoveryClient | None = None,
         pwc_client: PapersWithCodeClient | None = None,
-        stub_generator: type[SyntheticStubGenerator] = SyntheticStubGenerator,
+
     ) -> None:
         self.github_client = github_client or GitHubDiscoveryClient()
         self.hf_client = hf_client or HuggingFaceDiscoveryClient()
         self.pwc_client = pwc_client or PapersWithCodeClient()
-        self.stub_generator = stub_generator
+
         self._cache: dict[str, CodeResource] = {}
 
     def discover(self, paper_id: str, paper_title: str) -> CodeResource:
@@ -80,24 +80,19 @@ class ArtifactDiscoveryEngine:
                 generated_baseline_code=None,
             )
         else:
-            # Construct synthetic stub
-            logger.info("No existing code found for %s. Generating synthetic stub.", paper_id)
-            synthetic_code = self.stub_generator.generate_stub(
-                paper_title=paper_title,
-                arxiv_id=paper_id,
-            )
+            logger.info("No existing code found for %s. Reporting unavailable.", paper_id)
             resource = CodeResource(
-                status=RepoStatus.SYNTHETIC_STUB,
+                status=RepoStatus.UNAVAILABLE,
                 repo_url=None,
                 commit_sha=None,
                 primary_language="python",
-                entry_point_script="baseline_synthetic.py",
-                dataset_name=linked_dataset_id or "synthetic_tensor_dataset",
+                entry_point_script=None,
+                dataset_name=linked_dataset_id,
                 dataset_download_url=dataset_url,
                 huggingface_model_id=linked_model_id,
                 stars=0,
-                license="MIT",
-                generated_baseline_code=synthetic_code,
+                license=None,
+                generated_baseline_code=None,
             )
 
         # Cache the result for idempotency
