@@ -39,6 +39,85 @@ flowchart TD
 
 ---
 
+## Quickstart
+
+### 1. Thirty-Second Terminal Quickstart
+
+```bash
+# Clone and install in development mode
+git clone https://github.com/riri-05/zero-gaze.git
+cd zero-gaze
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -e ".[dev]"
+
+# Configure OpenRouter API key
+cp .env.example .env
+# Supply your OPENROUTER_API_KEY in .env
+
+# Replicate any arXiv paper in one command
+zero-gaze replicate 2106.09685 --auto-approve
+```
+
+#### Expected Terminal Output
+
+```
+Initiating replication for paper target: 2106.09685
+[1/4] Ingested: LoRA: Low-Rank Adaptation of Large Language Models (31,930 chars)
+[2/4] Discovered code: https://github.com/microsoft/LoRA (13,800 stars)
+[3/4] Extracted claims: GLUE MNLI Accuracy = 90.2%
+[4/4] Plan synthesized: python baseline_experiment.py (Hardware: cpu, Est: 10 min)
+============================================================
+HUMAN-IN-THE-LOOP INTERRUPT GATE
+============================================================
+Paper: LoRA: Low-Rank Adaptation of Large Language Models
+Target Hardware: cpu
+Command: python baseline_experiment.py
+Estimated Runtime: 10 min
+Auto-approving execution per --auto-approve flag.
+============================================================
+REPLICATION SUMMARY
+============================================================
+# Replication Summary: LoRA: Low-Rank Adaptation of Large Language Models
+- Review Verdict: APPROVED
+- Implementation Target: https://github.com/microsoft/LoRA (13,800 stars)
+- Planned Hardware: cpu
+- Estimated Runtime: 10 minutes
+```
+
+---
+
+### 2. Interactive Web Dashboard in One Command
+
+```bash
+zero-gaze serve --host 127.0.0.1 --port 8000
+```
+
+Open `http://127.0.0.1:8000` in your browser. The embedded AG-UI 1.0 Server-Sent Events dashboard lets you submit arXiv IDs, inspect extracted benchmark claims, and authorize replication plans interactively.
+
+---
+
+### 3. Four-Line Python API
+
+```python
+from zero_gaze.graph import ZeroGazeRunner
+
+runner = ZeroGazeRunner()
+state, thread_id, _ = runner.start_replication("2106.09685")
+final_state = runner.resolve_approval(thread_id, decision="approved")
+print(final_state["report"].summary_markdown)
+```
+
+---
+
+### 4. Zero-Setup Kaggle Notebook (Free T4 GPU)
+
+Run Zero Gaze in a browser without any local Python or GPU installation:
+- Open [`notebooks/zero_gaze_kaggle_free.ipynb`](notebooks/zero_gaze_kaggle_free.ipynb).
+- Features in-cell `ipywidgets` buttons for interactive human-in-the-loop experiment approvals.
+
+---
+
 ## Architectural Invariants
 
 1. **Statically Typed Boundaries.** Graph nodes exchange immutable Pydantic models (`AgentState`). Loose dictionaries are rejected across execution boundaries.
@@ -48,7 +127,6 @@ flowchart TD
 5. **Dual-Surface Delivery.** Every replication feature is executable locally via the `zero-gaze` CLI and FastAPI AG-UI web server, as well as remotely in standalone Kaggle GPU notebooks.
 6. **Execution Containment.** Experiment code runs inside ephemeral subprocess sandboxes with strict runtime ceilings and metric extraction parsers.
 
----
 
 ## Subsystem Architecture Index
 
@@ -64,77 +142,10 @@ The architecture is divided into discrete technical modules documented in [`docs
 | **Lego 05** | [`docs/05-agent-ui-agui-lego/`](docs/05-agent-ui-agui-lego/README.md) | CopilotKit 2.0 / AG-UI 1.0 | Real-time Server-Sent Events (SSE) state synchronization. |
 | **Lego 06** | [`docs/06-kaggle-runtime-lego/`](docs/06-kaggle-runtime-lego/README.md) | Subprocess Sandbox / Kaggle Kernel | Resource-bounded sandboxed execution and metric extraction grammar. |
 
----
 
-## Installation & Setup
-
-### Prerequisites
-
-- Python 3.11 or higher
-- OpenRouter API key
-
-### Quickstart
-
-```bash
-# Clone the repository
-git clone https://github.com/riri-05/zero-gaze.git
-cd zero-gaze
-
-# Create virtual environment and install in development mode
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -e ".[dev]"
-
-# Configure environment variables
-cp .env.example .env
-# Edit .env and supply your OPENROUTER_API_KEY
-```
-
----
-
-## Usage Reference
-
-### Command Line Interface
-
-```bash
-# Replicate an arXiv paper from terminal with interactive approval
-zero-gaze replicate 2106.09685
-
-# Replicate with automatic plan authorization
-zero-gaze replicate 2106.09685 --auto-approve
-
-# Start the FastAPI AG-UI web server and dashboard
-zero-gaze serve --host 127.0.0.1 --port 8000
-```
-
-### Programmatic Python API
-
-```python
-from zero_gaze.graph import ZeroGazeRunner
-from zero_gaze.core.models.state import HumanDecision
-
-runner = ZeroGazeRunner()
-
-# 1. Start execution up to the human interrupt gate
-state, thread_id, is_interrupted = runner.start_replication("2106.09685")
-
-# 2. Inspect synthesized plan and discovered code
-print("Discovered Repo:", state["code_resource"].repo_url)
-print("Execution Command:", state["plan"].execution_command)
-
-# 3. Authorize experiment execution across the gate
-final_state = runner.resolve_approval(
-    thread_id=thread_id,
-    decision=HumanDecision.APPROVED,
-    comments="Authorized for CPU verification",
-)
-print("Replication Summary:\n", final_state["report"].summary_markdown)
-```
-
-### Verification & Test Suite
+## Verification & Test Suite
 
 ```bash
 # Run the complete test suite across all 7 subsystems
 pytest tests/
 ```
-
