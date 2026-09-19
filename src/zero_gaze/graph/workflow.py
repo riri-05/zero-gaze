@@ -89,6 +89,7 @@ def build_zero_gaze_graph(
             ("zero_gaze.core.models.state", "HumanDecision"),
             ("zero_gaze.core.models.state", "HumanApproval"),
             ("zero_gaze.core.models.state", "AgentState"),
+            ("zero_gaze.execution.sandbox", "ExecutionResult"),
         ]
         serde = JsonPlusSerializer(allowed_msgpack_modules=allowed_modules)
         saver = MemorySaver(serde=serde)

@@ -46,8 +46,8 @@ class IterativeCoder:
             HumanMessage(content=prompt)
         ]
         
-        # Use primary model directly
-        model = self.gateway.get_chat_model(self.gateway.models_cascade[0], temperature=0.2)
+        # Use fast model directly to avoid timeouts in CI
+        model = self.gateway.get_chat_model(self.gateway.models_cascade[-1], temperature=0.2)
         
         best_code = ""
         last_result = None

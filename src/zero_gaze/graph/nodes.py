@@ -33,7 +33,7 @@ class NodeFactory:
         self.discovery_engine = discovery_engine or ArtifactDiscoveryEngine()
         self.claim_extractor = claim_extractor or ClaimExtractor()
         self.replication_planner = replication_planner or ReplicationPlanner()
-        self.iterative_coder = IterativeCoder()
+        self.iterative_coder = IterativeCoder(max_retries=1)
 
     def fetch_paper_node(self, state: AgentState) -> dict[str, Any]:
         """Ingest paper from arXiv URL or ID and extract structured markdown."""
@@ -145,12 +145,9 @@ class NodeFactory:
             from zero_gaze.core.models.claims import ClaimsList
             claims_list = ClaimsList(claims=claims) if claims else None
             
-            paper_ctx = state.paper.markdown_content if state.paper else state.paper_target
+            paper_ctx = state.paper.full_text_markdown if state.paper else state.paper_target
             best_code, result = self.iterative_coder.generate_and_refine(claims=claims_list, paper_context=paper_ctx)
             
-            if state.plan:
-                # Update plan to include generated code
-                state.plan.execution_command = "python baseline_experiment.py" # just a marker
             
             return {"execution_result": result}
         except Exception as err:
