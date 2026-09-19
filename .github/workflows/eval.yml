@@ -1,4 +1,4 @@
-name: Evaluation Pipeline
+name: CI/CD Pipeline
 
 on:
   push:
@@ -7,7 +7,8 @@ on:
     branches: [ "main" ]
 
 jobs:
-  evaluate:
+  backend-test:
+    name: Backend Test Suite
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -33,3 +34,49 @@ jobs:
         OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY || 'ci-dummy-key' }}
       run: |
         python tests/eval_papers.py
+
+  frontend-build:
+    name: Frontend Build & Typecheck
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Bun
+      uses: oven-sh/setup-bun@v2
+      with:
+        bun-version: latest
+
+    - name: Install and build React frontend
+      working-directory: frontend
+      run: |
+        bun install --frozen-lockfile
+        bun run build
+
+  deploy:
+    name: Continuous Deployment (Render & Vercel)
+    needs: [backend-test, frontend-build]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Deploy Frontend to Vercel
+      uses: amondnet/vercel-action@v25
+      if: env.VERCEL_TOKEN != ''
+      env:
+        VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      with:
+        vercel-token: ${{ secrets.VERCEL_TOKEN }}
+        vercel-org-id: ${{ secrets.VERCEL_ORG_ID || 'team_FUcs8fFoJOSKweY8QRIvuKW9' }}
+        vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID || 'prj_jTRdXZynlAg9TqL5Af24D8B0biN0' }}
+        vercel-args: '--prod'
+        working-directory: ./frontend
+
+    - name: Trigger Render Backend Deploy
+      if: env.RENDER_API_KEY != ''
+      env:
+        RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+      run: |
+        curl -f -X POST "https://api.render.com/v1/services/srv-dan9tov40ujc73b77sa0/deploys" \
+          -H "Authorization: Bearer $RENDER_API_KEY" \
+          -H "Accept: application/json" || echo "Render deploy triggered via Git autoDeploy"

@@ -51,6 +51,7 @@ class ReplicationStatusResponse(BaseModel):
 
 
 @router.get("/health", summary="Service Health Check")
+@router.get("/api/health", summary="API Health Check")
 def health_check() -> dict[str, str]:
     """Health check endpoint."""
     return {"status": "ok", "service": "zero-gaze-agent", "version": "0.1.0"}

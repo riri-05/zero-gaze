@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: zero-gaze-api
+    runtime: python
+    plan: free
+    region: oregon
+    branch: main
+    repo: https://github.com/riri-05/zero-gaze
+    buildCommand: "pip install -e '.[dev]'"
+    startCommand: "uvicorn zero_gaze.server.app:app --host 0.0.0.0 --port $PORT"
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: PRIMARY_MODEL
+        value: deepseek/deepseek-v4-flash-0731:free
+      - key: REASONING_MODEL
+        value: qwen/qwen3.8-27b:free
+      - key: FAST_MODEL
+        value: nvidia/nemotron-3.5-lightning:free
+      - key: OPENROUTER_API_KEY
+        sync: false
