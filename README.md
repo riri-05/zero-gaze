@@ -138,9 +138,3 @@ print("Replication Summary:\n", final_state["report"].summary_markdown)
 pytest tests/
 ```
 
----
-
-## Repository Metadata
-
-- **Description:** Autonomous machine learning replication engine. Ingests arXiv papers, discovers reference codebases, extracts empirical claims, and drafts verifiable experiment baselines via LangGraph.
-- **Topics & Tags:** `machine-learning`, `reproducibility`, `langgraph`, `arxiv`, `paper-to-code`, `autonomous-agents`, `benchmarks`, `research-agents`, `empirical-benchmarks`, `replication-engine`, `openrouter`, `fastapi`, `server-sent-events`, `structured-outputs`, `pydantic`
