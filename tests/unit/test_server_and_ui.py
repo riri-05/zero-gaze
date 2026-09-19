@@ -9,6 +9,7 @@ from zero_gaze.core.models.discovery import CodeResource, RepoStatus
 from zero_gaze.core.models.paper import PaperArtifact, PaperExtractionSource
 from zero_gaze.core.models.plan import ReplicationPlan
 from zero_gaze.core.models.state import HumanApproval, HumanDecision
+from zero_gaze.execution.sandbox import ExecutionResult
 from zero_gaze.graph import NodeFactory, build_zero_gaze_graph
 from zero_gaze.graph.runner import ZeroGazeRunner
 from zero_gaze.server.app import create_app
@@ -45,6 +46,9 @@ def mock_runner() -> ZeroGazeRunner:
     }
     mock_factory.plan_baseline_node.return_value = {
         "plan": ReplicationPlan(target_hardware="cpu", execution_command="pytest", baseline_script="print(1)")
+    }
+    mock_factory.execute_baseline_node.return_value = {
+        "execution_result": ExecutionResult(success=True, exit_code=0, stdout="Mock output", stderr="", runtime_seconds=0.1)
     }
     real_factory = NodeFactory()
     mock_factory.human_approval_node = real_factory.human_approval_node

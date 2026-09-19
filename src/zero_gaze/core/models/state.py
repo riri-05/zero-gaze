@@ -4,6 +4,7 @@ from enum import Enum
 import operator
 from typing import Annotated, Any
 from pydantic import BaseModel, ConfigDict, Field
+from zero_gaze.execution.sandbox import ExecutionResult
 from zero_gaze.core.models.claims import ClaimItem
 from zero_gaze.core.models.discovery import CodeResource
 from zero_gaze.core.models.paper import PaperArtifact
@@ -38,5 +39,6 @@ class AgentState(BaseModel):
     code_resource: CodeResource | None = None
     plan: ReplicationPlan | None = None
     approval: HumanApproval = Field(default_factory=HumanApproval)
+    execution_result: ExecutionResult | None = None
     report: ReplicationReport | None = None
     errors: Annotated[list[str], operator.add] = Field(default_factory=list)

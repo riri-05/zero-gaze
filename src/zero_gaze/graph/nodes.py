@@ -13,6 +13,7 @@ from zero_gaze.core.models.plan import ReplicationPlan, ReplicationReport
 from zero_gaze.core.models.state import AgentState, HumanApproval, HumanDecision
 from zero_gaze.discovery.engine import ArtifactDiscoveryEngine
 from zero_gaze.ingestion.engine import PaperIngestionEngine
+from zero_gaze.llm.coder import IterativeCoder
 from zero_gaze.llm.extractor import ClaimExtractor, ReplicationPlanner
 
 logger = logging.getLogger(__name__)
@@ -32,6 +33,7 @@ class NodeFactory:
         self.discovery_engine = discovery_engine or ArtifactDiscoveryEngine()
         self.claim_extractor = claim_extractor or ClaimExtractor()
         self.replication_planner = replication_planner or ReplicationPlanner()
+        self.iterative_coder = IterativeCoder()
 
     def fetch_paper_node(self, state: AgentState) -> dict[str, Any]:
         """Ingest paper from arXiv URL or ID and extract structured markdown."""
@@ -129,6 +131,32 @@ class NodeFactory:
         )
         return {"approval": approval}
 
+    def execute_baseline_node(self, state: AgentState) -> dict[str, Any]:
+        """Execute generated code iteratively with LLM correction."""
+        logger.info("Executing node: execute_baseline")
+        if state.approval.decision != HumanDecision.APPROVED:
+            return {}
+
+        try:
+            claims = state.claims
+            # For claims List we pass an object, but IterativeCoder needs ClaimsList
+            # The extractor returns ClaimsList, but AgentState stores list[ClaimItem].
+            # Let's rebuild a ClaimsList for the coder.
+            from zero_gaze.core.models.claims import ClaimsList
+            claims_list = ClaimsList(claims=claims) if claims else None
+            
+            paper_ctx = state.paper.markdown_content if state.paper else state.paper_target
+            best_code, result = self.iterative_coder.generate_and_refine(claims=claims_list, paper_context=paper_ctx)
+            
+            if state.plan:
+                # Update plan to include generated code
+                state.plan.execution_command = "python baseline_experiment.py" # just a marker
+            
+            return {"execution_result": result}
+        except Exception as err:
+            logger.error("Failed to execute baseline: %s", err)
+            return {"errors": [f"execute_baseline failed: {err}"]}
+
     def write_report_node(self, state: AgentState) -> dict[str, Any]:
         """Generate final replication report summary."""
         logger.info("Executing node: write_report")
@@ -145,21 +173,25 @@ class NodeFactory:
         code_md = "Synthetic Baseline"
         if state.code_resource and state.code_resource.repo_url:
             code_md = f"[{state.code_resource.repo_url}]({state.code_resource.repo_url}) ({state.code_resource.stars} stars)"
+        execution_md = "Execution was not attempted."
+        if state.execution_result:
+            if state.execution_result.success:
+                metrics_str = ", ".join(f"{k}: {v:.4f}" for k, v in state.execution_result.output_metrics.items())
+                execution_md = f"**Status**: SUCCESS\n**Runtime**: {state.execution_result.runtime_seconds}s\n**Metrics**: {metrics_str or 'None extracted'}"
+            else:
+                execution_md = f"**Status**: FAILED\n**Exit Code**: {state.execution_result.exit_code}\n**Error**:\n```\n{state.execution_result.stderr.strip()[:500]}\n```"
 
         summary = f"""# Replication Summary: {paper_title}
 
 - **Review Verdict**: {decision_str.upper()}
 - **Implementation Target**: {code_md}
 - **Planned Hardware**: {state.plan.target_hardware if state.plan else 'N/A'}
-- **Estimated Runtime**: {state.plan.estimated_runtime_minutes if state.plan else 0} minutes
+
+## Execution Results
+{execution_md}
 
 ## Extracted Paper Claims
 {claims_md}
-
-## Execution Command
-```bash
-{state.plan.execution_command if state.plan else '# No command generated'}
-```
 """
 
         metric_deltas = {}
@@ -187,4 +219,5 @@ extract_claims_node = _default_factory.extract_claims_node
 find_code_dataset_node = _default_factory.find_code_dataset_node
 plan_baseline_node = _default_factory.plan_baseline_node
 human_approval_node = _default_factory.human_approval_node
+execute_baseline_node = _default_factory.execute_baseline_node
 write_report_node = _default_factory.write_report_node

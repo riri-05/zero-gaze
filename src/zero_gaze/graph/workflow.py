@@ -13,6 +13,7 @@ from zero_gaze.graph.nodes import (
     extract_claims_node,
     fetch_paper_node,
     find_code_dataset_node,
+    execute_baseline_node,
     human_approval_node,
     plan_baseline_node,
     write_report_node,
@@ -23,7 +24,7 @@ def route_after_approval(state: AgentState) -> str:
     """Conditional routing edge determining next node based on human decision."""
     if state.approval.decision == HumanDecision.ABORTED:
         return END
-    return "write_report"
+    return "execute_baseline"
 
 
 def build_zero_gaze_graph(
@@ -39,6 +40,7 @@ def build_zero_gaze_graph(
         workflow.add_node("find_code_dataset", node_factory.find_code_dataset_node)
         workflow.add_node("plan_baseline", node_factory.plan_baseline_node)
         workflow.add_node("human_approval", node_factory.human_approval_node)
+        workflow.add_node("execute_baseline", node_factory.execute_baseline_node)
         workflow.add_node("write_report", node_factory.write_report_node)
     else:
         workflow.add_node("fetch_paper", fetch_paper_node)
@@ -46,6 +48,7 @@ def build_zero_gaze_graph(
         workflow.add_node("find_code_dataset", find_code_dataset_node)
         workflow.add_node("plan_baseline", plan_baseline_node)
         workflow.add_node("human_approval", human_approval_node)
+        workflow.add_node("execute_baseline", execute_baseline_node)
         workflow.add_node("write_report", write_report_node)
 
     # Entry point
@@ -63,6 +66,9 @@ def build_zero_gaze_graph(
 
     # Conditional branching based on human review verdict
     workflow.add_conditional_edges("human_approval", route_after_approval)
+
+    # Execution edge
+    workflow.add_edge("execute_baseline", "write_report")
 
     # Completion edge
     workflow.add_edge("write_report", END)

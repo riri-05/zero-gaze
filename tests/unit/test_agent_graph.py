@@ -138,7 +138,7 @@ def test_node_factory_write_report(sample_paper: PaperArtifact) -> None:
     report = res["report"]
     assert report.verdict == "approved_for_replication"
     assert "GLUE" in report.summary_markdown
-    assert "pytest" in report.summary_markdown
+    assert "Execution was not attempted." in report.summary_markdown
     assert "GLUE" in report.metric_deltas
 
 
@@ -147,13 +147,13 @@ def test_route_after_approval() -> None:
         paper_target="test",
         approval=HumanApproval(decision=HumanDecision.APPROVED),
     )
-    assert route_after_approval(approved_state) == "write_report"
+    assert route_after_approval(approved_state) == "execute_baseline"
 
     revised_state = AgentState(
         paper_target="test",
         approval=HumanApproval(decision=HumanDecision.REVISED),
     )
-    assert route_after_approval(revised_state) == "write_report"
+    assert route_after_approval(revised_state) == "execute_baseline"
 
     aborted_state = AgentState(
         paper_target="test",
