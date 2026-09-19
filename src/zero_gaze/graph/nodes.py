@@ -31,12 +31,42 @@ class NodeFactory:
         iterative_coder: IterativeCoder | None = None,
         sandbox_runner: SandboxRunner | None = None,
     ) -> None:
-        self.ingestion_engine = ingestion_engine or PaperIngestionEngine()
-        self.discovery_engine = discovery_engine or ArtifactDiscoveryEngine()
-        self.claim_extractor = claim_extractor or ClaimExtractor()
-        self.replication_planner = replication_planner or ReplicationPlanner()
+        self._ingestion_engine = ingestion_engine
+        self._discovery_engine = discovery_engine
+        self._claim_extractor = claim_extractor
+        self._replication_planner = replication_planner
         self.sandbox_runner = sandbox_runner or SandboxRunner()
-        self.iterative_coder = iterative_coder or IterativeCoder(sandbox=self.sandbox_runner, max_retries=1)
+        self._iterative_coder = iterative_coder
+
+    @property
+    def ingestion_engine(self) -> PaperIngestionEngine:
+        if self._ingestion_engine is None:
+            self._ingestion_engine = PaperIngestionEngine()
+        return self._ingestion_engine
+
+    @property
+    def discovery_engine(self) -> ArtifactDiscoveryEngine:
+        if self._discovery_engine is None:
+            self._discovery_engine = ArtifactDiscoveryEngine()
+        return self._discovery_engine
+
+    @property
+    def claim_extractor(self) -> ClaimExtractor:
+        if self._claim_extractor is None:
+            self._claim_extractor = ClaimExtractor()
+        return self._claim_extractor
+
+    @property
+    def replication_planner(self) -> ReplicationPlanner:
+        if self._replication_planner is None:
+            self._replication_planner = ReplicationPlanner()
+        return self._replication_planner
+
+    @property
+    def iterative_coder(self) -> IterativeCoder:
+        if self._iterative_coder is None:
+            self._iterative_coder = IterativeCoder(sandbox=self.sandbox_runner, max_retries=1)
+        return self._iterative_coder
     def fetch_paper_node(self, state: AgentState) -> dict[str, Any]:
         """Ingest paper from arXiv URL or ID and extract structured markdown."""
         logger.info("Executing node: fetch_paper for target '%s'", state.paper_target)

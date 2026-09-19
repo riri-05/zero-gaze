@@ -10,10 +10,10 @@ jobs:
   evaluate:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
     - name: Set up Python 3.11
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: "3.11"
         cache: "pip"
@@ -24,8 +24,12 @@ jobs:
         pip install -e ".[dev]"
         pip install torch --index-url https://download.pytorch.org/whl/cpu
         
+    - name: Run unit test suite
+      run: |
+        pytest tests/unit/ -v
+        
     - name: Run end-to-end evaluation
       env:
-        OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY || 'ci-dummy-key' }}
       run: |
         python tests/eval_papers.py
