@@ -8,10 +8,14 @@
 </p>
 
 <p align="center">
+  <a href="https://zero-gaze-seven.vercel.app"><img src="https://img.shields.io/badge/Vercel-Deployment%20Live-000000.svg?logo=vercel&logoColor=white" alt="Vercel" /></a>
+  <a href="https://zero-gaze-api.onrender.com/health"><img src="https://img.shields.io/badge/Render-API%20Online-46E3B7.svg?logo=render&logoColor=white" alt="Render" /></a>
+  <a href="https://github.com/riri-05/zero-gaze/actions/workflows/eval.yml"><img src="https://github.com/riri-05/zero-gaze/actions/workflows/eval.yml/badge.svg" alt="CI/CD Pipeline" /></a>
+  <a href="https://react.dev"><img src="https://img.shields.io/badge/React-19-61DAFB.svg?logo=react&logoColor=black" alt="React 19" /></a>
   <a href="https://github.com/riri-05/zero-gaze"><img src="https://img.shields.io/badge/LangGraph-StateGraph-blue.svg" alt="LangGraph" /></a>
-  <a href="https://github.com/riri-05/zero-gaze"><img src="https://img.shields.io/badge/Protocol-AG--UI%201.0%20(SSE)-emerald.svg" alt="AG-UI" /></a>
+  <a href="https://github.com/riri-05/zero-gaze"><img src="https://img.shields.io/badge/Protocol-AG--UI%202.0%20(SSE)-emerald.svg" alt="AG-UI" /></a>
   <a href="https://github.com/riri-05/zero-gaze"><img src="https://img.shields.io/badge/Python-3.11%2B-blue.svg" alt="Python" /></a>
-  <a href="https://github.com/riri-05/zero-gaze"><img src="https://img.shields.io/badge/Tests-65%20Passed-success.svg" alt="Tests" /></a>
+  <a href="https://github.com/riri-05/zero-gaze"><img src="https://img.shields.io/badge/Tests-64%20Passed-success.svg" alt="Tests" /></a>
   <a href="https://github.com/riri-05/zero-gaze"><img src="https://img.shields.io/badge/License-MIT-neutral.svg" alt="License" /></a>
 </p>
 
