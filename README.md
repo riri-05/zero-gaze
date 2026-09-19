@@ -145,7 +145,7 @@ The architecture is divided into discrete technical modules documented in [`docs
 | **Lego 04** | [`docs/04-agent-graph-lego/`](docs/04-agent-graph-lego/README.md) | LangGraph StateGraph | Checkpoint persistence via `MemorySaver` and human interrupt gate. |
 | **Lego 05** | [`docs/05-agent-ui-agui-lego/`](docs/05-agent-ui-agui-lego/README.md) | CopilotKit 2.0 / AG-UI 1.0 | Real-time Server-Sent Events (SSE) state synchronization. |
 | **Lego 06** | [`docs/06-kaggle-runtime-lego/`](docs/06-kaggle-runtime-lego/README.md) | Subprocess Sandbox / Kaggle Kernel | Resource-bounded sandboxed execution and metric extraction grammar. |
-
+| **Lego 07** | [`docs/07-cloud-deployment-and-operations/`](docs/07-cloud-deployment-and-operations/README.md) | Render / Vercel / GitHub Actions | Multi-cloud deployment topology, zero-downtime rolling updates, and reverse proxy routing. |
 
 ## Verification & Test Suite
 

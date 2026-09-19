@@ -33,8 +33,9 @@ Zero Gaze is partitioned into five distinct bounded contexts. Each context maint
 | **Discovery Context** | Lego 02 | `CodeResource`, `RepoStatus` | GitHub Search REST API, Hugging Face Papers API, PapersWithCode |
 | **Inference Context** | Lego 03 | `ClaimItem`, `ClaimsList` | OpenRouter OpenAI-Compatible Chat Completions API |
 | **Orchestration Context** | Lego 04 | `AgentState`, `HumanApproval`, `ReplicationPlan` | LangGraph StateGraph, Checkpoint Storage (`MemorySaver`) |
-| **Presentation Context** | Lego 05 | `AGUIEvent`, `ReplicationStatusResponse` | AG-UI 1.0 SSE Wire Stream, FastAPI Web Server, Browser UI |
+| **Presentation Context** | Lego 05 | `AGUIEvent`, `ReplicationStatusResponse` | AG-UI 2.0 SSE Wire Stream, FastAPI Web Server, React 19 Cockpit |
 | **Execution Context** | Lego 06 | `ExecutionResult`, `SandboxRunner` | Ephemeral Subprocess Cgroups, PyTorch Runtime, Kaggle T4 Kernel |
+| **Operations Context** | Lego 07 | `render.yaml`, `vercel.json`, GitHub Actions | Multi-Cloud Deployment, Vercel Edge CDN, Render Web Service |
 
 ---
 
